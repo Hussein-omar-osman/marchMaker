@@ -1,21 +1,17 @@
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import {useSharedValue} from 'react-native-reanimated';
 
-const Card = () => {
-  const translateX = useSharedValue(0);
+const Card = ({user}) => {
+  const {name, image, bio} = user;
+  console.log(name);
+  console.log(image);
+  console.log(bio);
   return (
     <View style={styles.card}>
-      <ImageBackground
-        source={{
-          uri: 'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/elon.png',
-        }}
-        style={styles.image}>
+      <ImageBackground source={{uri: image}} style={styles.image}>
         <View style={styles.cardInner}>
-          <Text style={styles.name}>Elon Mask</Text>
-          <Text style={styles.bio}>
-            A dude with a rocket is looking for a gal with fuel
-          </Text>
+          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.bio}>{bio}</Text>
         </View>
       </ImageBackground>
     </View>
