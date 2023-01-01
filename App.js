@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Button,
   Image,
@@ -16,7 +16,9 @@ import {
 } from 'react-native-gesture-handler';
 import Card from './src/components/Card';
 import Animated, {
+  event,
   interpolate,
+  runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useDerivedValue,
@@ -26,7 +28,12 @@ import Animated, {
 import users from './src/data/user.js';
 
 const App = () => {
+  const SWIPE_VELOCITY = 800;
   const {width: screenWidth} = useWindowDimensions();
+  const [currIndex, setCurrentIndex] = useState(0);
+  const [nextIndex, setNextIndex] = useState(currIndex + 1);
+  const profile = users[currIndex];
+  const nextProfile = users[nextIndex];
   const translateX = useSharedValue(0);
   const hiddenRotationX = screenWidth * 2;
   const rotate = useDerivedValue(
@@ -44,31 +51,66 @@ const App = () => {
       ],
     };
   });
+  const nextCardStyle = useAnimatedStyle(() => {
+    const commInter = num =>
+      interpolate(
+        translateX.value,
+        [-hiddenRotationX, 0, hiddenRotationX],
+        [1, num, 1],
+      );
+    return {
+      transform: [
+        {
+          scale: commInter(0.8),
+        },
+      ],
+      opacity: commInter(0.6),
+    };
+  });
   const panGesterEvent = useAnimatedGestureHandler({
     onStart: (_, context) => {
       context.translateX = translateX.value;
     },
+    // eslint-disable-next-line no-shadow
     onActive: (event, context) => {
       translateX.value = event.translationX + context.translateX;
       console.log('Active --->', event.translationX + context.translateX);
     },
-    onEnd: () => {
-      translateX.value = withSpring(0);
+    // eslint-disable-next-line no-shadow
+    onEnd: (event, _) => {
       console.log(translateX.value);
+      if (Math.abs(event.velocityX) < SWIPE_VELOCITY) {
+        translateX.value = withSpring(0);
+        return;
+      }
+      translateX.value = withSpring(
+        event.velocityX > 0 ? hiddenRotationX : -hiddenRotationX,
+        {},
+        () => runOnJS(setCurrentIndex)(currIndex + 1),
+      );
     },
   });
-  console.log(users);
+  useEffect(() => {
+    translateX.value = 0;
+    setNextIndex(currIndex + 1);
+  }, [currIndex, translateX]);
   return (
-    // <GestureHandlerRootView>
+    // <GestureHandlerRootView style={styles.container}>
     <View style={styles.container}>
-      <View style={styles.nextCardContainer}>
-        <Card user={users[2]} />
-      </View>
-      <PanGestureHandler onGestureEvent={panGesterEvent}>
-        <Animated.View style={[styles.animatedView, cardStyle]}>
-          <Card user={users[3]} />
-        </Animated.View>
-      </PanGestureHandler>
+      {nextProfile && (
+        <View style={styles.nextCardContainer}>
+          <Animated.View style={[styles.animatedView, nextCardStyle]}>
+            <Card user={nextProfile} />
+          </Animated.View>
+        </View>
+      )}
+      {profile && (
+        <PanGestureHandler onGestureEvent={panGesterEvent}>
+          <Animated.View style={[styles.animatedView, cardStyle]}>
+            <Card user={profile} />
+          </Animated.View>
+        </PanGestureHandler>
+      )}
       {/* <Button
         title="click"
         onPress={() => (translateX.value = withSpring(Math.random()))}
