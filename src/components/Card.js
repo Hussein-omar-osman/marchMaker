@@ -1,7 +1,9 @@
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
+import {useSharedValue} from 'react-native-reanimated';
 
 const Card = () => {
+  const translateX = useSharedValue(0);
   return (
     <View style={styles.card}>
       <ImageBackground
