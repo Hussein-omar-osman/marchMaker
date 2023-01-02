@@ -111,10 +111,6 @@ const App = () => {
           </Animated.View>
         </PanGestureHandler>
       )}
-      {/* <Button
-        title="click"
-        onPress={() => (translateX.value = withSpring(Math.random()))}
-      /> */}
     </View>
     // </GestureHandlerRootView>
   );
